@@ -81,6 +81,7 @@ class WorkspaceIsolationTest extends TestCase
 
         $this->actingAs($admin)->withHeaders($headers)->getJson('/api/v1/access-control/roles/member/permission-options')
             ->assertOk()->assertJsonMissing(['key' => 'workspaces.manage'])
+            ->assertJsonMissing(['key' => 'users.manage'])
             ->assertJsonMissing(['key' => 'access-control.roles.manage']);
 
         $protectedId = Permission::query()->where('key', 'workspaces.manage')->value('id');

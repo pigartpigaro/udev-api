@@ -18,5 +18,7 @@ Route::prefix('v1')->group(function (): void {
     require __DIR__.'/api/v1/projects/payments.php';
     require __DIR__.'/api/v1/projects/expenses.php';
     require __DIR__.'/api/v1/projects/reports.php';
+    require __DIR__.'/api/v1/projects/team_loans.php';
     require __DIR__.'/api/v1/access-control/menus.php';
+    require __DIR__.'/api/v1/access-control/users.php';
 });

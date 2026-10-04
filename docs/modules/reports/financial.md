@@ -1,8 +1,8 @@
 # Laporan Keuangan
 
-Menu `Laporan > Laporan Keuangan` merangkum invoice terbit, penerimaan sah, pengeluaran sah, arus kas bersih, dan saldo sisa tagihan untuk seluruh project atau project yang dipilih.
+Menu `Laporan > Laporan Keuangan` merangkum invoice terbit, penerimaan sah, pengeluaran sah, pencairan/pembayaran kasbon tim, arus kas bersih, serta saldo sisa tagihan dan kasbon untuk seluruh project atau project yang dipilih.
 
-Filter periode diterapkan sesuai tanggal peristiwa: invoice pada `issued_at`, penerimaan pada `received_at`, serta pengeluaran pada `spent_at`. Sisa tagihan adalah saldo saat ini dari semua invoice berstatus `issued`; nilainya sengaja tidak dibatasi periode. Invoice `draft`/`cancelled`, pembayaran `voided`, dan pengeluaran `voided` tidak dihitung. Tanpa filter project, total pengeluaran juga mencakup biaya operasional tim yang tidak terikat ke project.
+Filter periode diterapkan sesuai tanggal peristiwa: invoice pada `issued_at`, penerimaan pada `received_at`, pengeluaran pada `spent_at`, pencairan kasbon pada `issued_at`, dan cicilan pada `repaid_at`. Arus kas bersih mengurangi kasbon yang dicairkan serta menambahkan cicilan yang diterima; pencairan kasbon bukan biaya. Sisa tagihan dan sisa kasbon adalah saldo saat ini dan tidak dibatasi periode. Invoice `draft`/`cancelled`, pembayaran/pengeluaran/kasbon/cicilan `voided` tidak dihitung. Tanpa filter project, total pengeluaran juga mencakup biaya operasional tim.
 
 Endpoint privat memakai Sanctum dan permission `projects.reports.view`:
 

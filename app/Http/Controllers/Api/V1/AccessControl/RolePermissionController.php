@@ -17,6 +17,7 @@ class RolePermissionController extends Controller
         'access-control.menus.manage',
         'access-control.permissions.manage',
         'workspaces.manage',
+        'users.manage',
     ];
 
     public function show(string $role): JsonResponse
@@ -63,7 +64,7 @@ class RolePermissionController extends Controller
         $protectedRequested = Permission::query()->whereIn('id', $permissionIds)
             ->whereIn('key', self::MEMBER_PROTECTED_PERMISSION_KEYS)->exists();
         if ($protectedRequested) {
-            return response()->json(['message' => 'Izin pengelolaan workspace dan hak akses hanya dapat dimiliki role admin.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return response()->json(['message' => 'Izin pengelolaan pengguna, workspace, dan hak akses hanya dapat dimiliki role admin.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $unknownIds = DB::table('permissions')->whereIn('id', $permissionIds)->count() !== count($permissionIds);

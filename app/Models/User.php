@@ -22,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
         'role',
@@ -54,6 +55,26 @@ class User extends Authenticatable
 
     protected static function booted(): void
     {
+        static::creating(function (self $user): void {
+            if (filled($user->username)) {
+                $user->username = strtolower(trim($user->username));
+                return;
+            }
+
+            $localPart = strtolower((string) strstr((string) $user->email, '@', true));
+            $base = trim((string) preg_replace('/[^a-z0-9._-]+/', '', $localPart), '._-');
+            $base = substr($base !== '' ? $base : 'user', 0, 24);
+            $username = $base;
+            $suffix = 1;
+
+            while (static::query()->where('username', $username)->exists()) {
+                $username = substr($base, 0, 24).$suffix;
+                $suffix++;
+            }
+
+            $user->username = $username;
+        });
+
         static::created(function (self $user): void {
             if (! DB::getSchemaBuilder()->hasTable('workspace_user') || ! DB::getSchemaBuilder()->hasTable('workspaces')) {
                 return;

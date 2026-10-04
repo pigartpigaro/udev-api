@@ -31,33 +31,21 @@ Backend API untuk **UDev (Udumbara Development)**, aplikasi internal tim Udumbar
    docker compose up -d --build
    ```
 
-6. Jalankan migrasi database:
+6. Jalankan setup awal. Perintah ini menjalankan migrasi dan seeder menu/permission/role, lalu meminta data admin lokal secara interaktif bila belum ada platform admin. Username admin awal disarankan `admin`; password dimasukkan tersembunyi, wajib minimal 6 karakter, dan tidak memiliki nilai default. Perintah hanya berjalan saat `APP_ENV=local` dan aman dijalankan ulang; admin yang sudah ada tidak diubah.
 
    ```powershell
-   docker compose exec app php artisan migrate --force
+   docker compose exec app php artisan udev:setup
    ```
 
-   Migrasi tenant menempatkan seluruh data lama ke workspace `Workspace Utama` tanpa menghapus data.
+   Migrasi tenant menempatkan data lama ke workspace `Workspace Utama` tanpa menghapus data. Pada database yang sudah memiliki platform admin, setup tidak membuat ulang atau mengganti akun tersebut.
 
-7. Isi menu dan permission awal untuk role `admin` dan `member`:
-
-   ```powershell
-   docker compose exec app php artisan db:seed
-   ```
-
-8. Buat akun admin pertama. Perintah akan meminta nama, email, dan password secara interaktif; password minimal 12 karakter.
-
-   ```powershell
-   docker compose exec app php artisan udev:make-admin
-   ```
-
-9. Untuk menyiapkan workspace perusahaan baru, jalankan perintah provisioning. Perintah meminta nama perusahaan dan email pemilik; pemilik bisa berupa akun yang sudah ada atau akun baru.
+7. Untuk menyiapkan workspace perusahaan baru, jalankan perintah provisioning. Perintah meminta nama perusahaan dan email pemilik; pemilik bisa berupa akun yang sudah ada atau akun baru.
 
    ```powershell
    docker compose exec app php artisan udev:workspace:create
    ```
 
-Buka <http://localhost:8010> untuk melihat status API. Endpoint pemeriksaan API ada di <http://localhost:8010/api/v1/health>.
+Buka <http://localhost:8010> untuk melihat status API. Endpoint pemeriksaan API ada di <http://localhost:8010/api/v1/health>. Frontend mendukung `localhost:5173` dan `127.0.0.1:5173`; gunakan hostname yang sama untuk membuka frontend dan API agar cookie Sanctum terkirim.
 
 Port MySQL lokal adalah `3307`. Data database tersimpan di volume Docker `udev_mysql`.
 
@@ -68,9 +56,12 @@ Port MySQL lokal adalah `3307`. Data database tersimpan di volume Docker `udev_m
 | GET | `/api/v1/health` | Status API |
 | GET | `/api/v1/workspaces` | Workspace yang dapat diakses akun aktif |
 | GET/PATCH | `/api/v1/workspaces/current` | Melihat atau mengubah nama workspace aktif (`workspaces.manage`) |
-| POST | `/api/v1/auth/login` | Masuk dengan email dan password |
+| POST | `/api/v1/auth/login` | Masuk dengan username dan password |
 | GET | `/api/v1/auth/user` | Informasi akun yang sedang masuk |
 | POST | `/api/v1/auth/logout` | Keluar dan menghapus session |
+| POST | `/api/v1/access-control/users` | Membuat akun anggota pada workspace aktif (admin) |
+| GET | `/api/v1/access-control/users` | Daftar anggota workspace aktif (admin) |
+| PATCH | `/api/v1/access-control/users/{userId}/role` | Mengubah role anggota pada workspace aktif (admin) |
 | GET | `/api/v1/customers` | Daftar pelanggan (admin) |
 | POST | `/api/v1/customers` | Membuat pelanggan (admin) |
 | GET | `/api/v1/customers/{customer}` | Detail pelanggan (admin) |
@@ -90,7 +81,7 @@ Port MySQL lokal adalah `3307`. Data database tersimpan di volume Docker `udev_m
 | GET/PUT | `/api/v1/access-control/roles/{role}/permissions` | Melihat atau mengganti izin sebuah role (admin) |
 | GET | `/sanctum/csrf-cookie` | Mengambil cookie CSRF untuk SPA |
 
-Endpoint login menerima JSON `email`, `password`, dan opsional `remember`. Aplikasi SPA perlu mengaktifkan pengiriman credentials/cookies dan meminta `/sanctum/csrf-cookie` sebelum login. Pendaftaran publik tidak tersedia.
+Endpoint login menerima JSON `username`, `password`, dan opsional `remember`. Admin membuat akun anggota dari **Pengaturan > Pengguna**; endpoint menerima nama, username, email, password, dan password_confirmation. Aplikasi SPA perlu mengaktifkan pengiriman credentials/cookies dan meminta `/sanctum/csrf-cookie` sebelum login. Pendaftaran publik tidak tersedia.
 
 ## Keamanan
 
@@ -116,7 +107,7 @@ Endpoint login menerima JSON `email`, `password`, dan opsional `remember`. Aplik
 
 Kode backend dan dokumentasinya dikelompokkan berdasarkan menu. Master data menggunakan subfolder `Master` pada model, controller API, Form Request, dan `docs/modules/master/`. Definisi route versi API berada di `routes/api/v1/` dengan file terpisah per menu dan submenu; lokasi file tidak mengubah URL API yang sudah digunakan.
 
-Jalankan `docker compose exec app php artisan db:seed` setelah migrasi untuk memasukkan menu, permission awal, serta mapping permission untuk role `admin` dan `member`. Seeder aman dijalankan berulang kali dan mempertahankan mapping tambahan yang sudah dibuat.
+Perintah `udev:setup` menjalankan `DatabaseSeeder`, yang memasukkan menu, permission awal, tipe proyek, serta mapping permission untuk role `admin` dan `member`. Seeder aman dijalankan berulang kali dan mempertahankan mapping tambahan yang sudah dibuat. Untuk memperbarui data awal secara terpisah setelah perubahan menu atau permission, gunakan `docker compose exec app php artisan db:seed`.
 
 ## Pemeriksaan operasional
 

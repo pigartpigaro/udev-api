@@ -22,11 +22,11 @@ Buat workspace perusahaan melalui:
 docker compose exec app php artisan udev:workspace:create
 ```
 
-Perintah interaktif membuat workspace dan pemilik, menyalin role-permission awal serta jenis proyek dari Workspace Utama, dan meminta konfirmasi bila email pemilik sudah menjadi akun. Untuk akun baru, password dimasukkan secara tersembunyi dan wajib minimal 12 karakter. Pendaftaran publik belum tersedia; provisioning dilakukan operator.
+Perintah interaktif membuat workspace dan pemilik, menyalin role-permission awal serta jenis proyek dari Workspace Utama, dan meminta konfirmasi bila email pemilik sudah menjadi akun. Untuk akun baru, password dimasukkan secara tersembunyi dan wajib minimal 6 karakter. Pendaftaran publik belum tersedia; provisioning dilakukan operator.
 
 ## Batas implementasi saat ini
 
-Workspace perusahaan baru masih dibuat operator melalui command provisioning. Undangan anggota, pengelolaan anggota dari UI, pengelolaan langganan/kuota, pendaftaran mandiri, billing SaaS, dan UI administrasi platform belum termasuk implementasi ini. Sebelum membuka tenant untuk pelanggan, provisioning akun dan pemulihan akses tetap dikelola operator.
+Workspace perusahaan baru masih dibuat operator melalui command provisioning. Admin workspace dapat membuat akun anggota melalui **Pengaturan > Pengguna**; anggota baru hanya ditautkan ke workspace aktif dan tidak otomatis memperoleh keanggotaan workspace lain. Undangan email, daftar/edit/nonaktifkan anggota, pengelolaan langganan/kuota, pendaftaran mandiri, billing SaaS, dan UI administrasi platform belum termasuk implementasi ini. Sebelum membuka tenant untuk pelanggan, provisioning workspace dan pemulihan akses tetap dikelola operator.
 
 ## Pemeriksaan
 

@@ -26,10 +26,12 @@ class AccessControlSeeder extends Seeder
             'projects.payments.manage' => 'Mengelola pembayaran invoice project',
             'projects.expenses.manage' => 'Mengelola pengeluaran project dan operasional tim',
             'projects.reports.view' => 'Melihat laporan keuangan project',
+            'finance.team-loans.manage' => 'Mencatat kasbon dan pembayaran kasbon tim',
             'access-control.menus.manage' => 'Mengelola menu aplikasi',
             'access-control.permissions.manage' => 'Mengelola daftar izin',
             'access-control.roles.manage' => 'Mengatur izin per role',
             'workspaces.manage' => 'Mengatur workspace aktif',
+            'users.manage' => 'Mengelola pengguna dan role workspace',
         ];
 
         $permissions = [];
@@ -74,14 +76,22 @@ class AccessControlSeeder extends Seeder
             ['key' => 'projects.expenses'],
             ['parent_id' => $projects->id, 'permission_id' => $permissions['projects.expenses.manage']->id, 'label' => 'Pengeluaran', 'route_name' => 'projects.expenses.index', 'icon' => 'receipt', 'sort_order' => 4, 'is_active' => true],
         );
+        $finance = Menu::updateOrCreate(
+            ['key' => 'finance'],
+            ['parent_id' => null, 'permission_id' => null, 'label' => 'Keuangan', 'route_name' => null, 'icon' => 'finance', 'sort_order' => 25, 'is_active' => true],
+        );
+        Menu::updateOrCreate(
+            ['key' => 'finance.team-loans'],
+            ['parent_id' => $finance->id, 'permission_id' => $permissions['finance.team-loans.manage']->id, 'label' => 'Kasbon Tim', 'route_name' => 'finance.team-loans.index', 'icon' => 'receipt', 'sort_order' => 1, 'is_active' => true],
+        );
         Menu::where('key', 'projects.reports.financial')->delete();
         $reports = Menu::updateOrCreate(
             ['key' => 'reports'],
-            ['parent_id' => null, 'permission_id' => null, 'label' => 'Laporan', 'route_name' => null, 'icon' => 'finance', 'sort_order' => 30, 'is_active' => true],
+            ['parent_id' => null, 'permission_id' => null, 'label' => 'Laporan', 'route_name' => null, 'icon' => 'chart-bar-big', 'sort_order' => 30, 'is_active' => true],
         );
         Menu::updateOrCreate(
             ['key' => 'reports.financial'],
-            ['parent_id' => $reports->id, 'permission_id' => $permissions['projects.reports.view']->id, 'label' => 'Laporan Keuangan', 'route_name' => 'reports.financial.index', 'icon' => 'finance', 'sort_order' => 1, 'is_active' => true],
+            ['parent_id' => $reports->id, 'permission_id' => $permissions['projects.reports.view']->id, 'label' => 'Laporan Keuangan', 'route_name' => 'reports.financial.index', 'icon' => 'chart-line', 'sort_order' => 1, 'is_active' => true],
         );
 
         $settings = Menu::updateOrCreate(
@@ -92,9 +102,13 @@ class AccessControlSeeder extends Seeder
             ['key' => 'settings.workspace'],
             ['parent_id' => $settings->id, 'permission_id' => $permissions['workspaces.manage']->id, 'label' => 'Workspace', 'route_name' => 'settings.workspace.index', 'icon' => 'briefcase', 'sort_order' => 1, 'is_active' => true],
         );
+        Menu::updateOrCreate(
+            ['key' => 'settings.users'],
+            ['parent_id' => $settings->id, 'permission_id' => $permissions['users.manage']->id, 'label' => 'Pengguna', 'route_name' => 'settings.users.index', 'icon' => 'users', 'sort_order' => 2, 'is_active' => true],
+        );
         $accessControl = Menu::updateOrCreate(
             ['key' => 'settings.access-control'],
-            ['parent_id' => $settings->id, 'permission_id' => $permissions['access-control.roles.manage']->id, 'label' => 'Hak Akses', 'route_name' => 'settings.roles.index', 'icon' => 'shield', 'sort_order' => 2, 'is_active' => true],
+            ['parent_id' => $settings->id, 'permission_id' => $permissions['access-control.roles.manage']->id, 'label' => 'Hak Akses', 'route_name' => 'settings.roles.index', 'icon' => 'shield', 'sort_order' => 3, 'is_active' => true],
         );
 
         foreach ([
@@ -108,7 +122,7 @@ class AccessControlSeeder extends Seeder
             );
         }
 
-        foreach (['admin' => array_keys($permissionLabels), 'member' => ['navigation.view']] as $role => $keys) {
+        foreach (['admin' => array_keys($permissionLabels), 'member' => ['navigation.view', 'finance.team-loans.manage']] as $role => $keys) {
             foreach ($keys as $key) {
                 DB::table('role_permissions')->insertOrIgnore([
                     'workspace_id' => $workspaceId,
@@ -118,6 +132,30 @@ class AccessControlSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
             }
+        }
+
+        foreach (Workspace::query()->pluck('id') as $existingWorkspaceId) {
+            DB::table('role_permissions')->insertOrIgnore([
+                'workspace_id' => $existingWorkspaceId,
+                'role' => 'admin',
+                'permission_id' => $permissions['finance.team-loans.manage']->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('role_permissions')->insertOrIgnore([
+                'workspace_id' => $existingWorkspaceId,
+                'role' => 'admin',
+                'permission_id' => $permissions['users.manage']->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('role_permissions')->insertOrIgnore([
+                'workspace_id' => $existingWorkspaceId,
+                'role' => 'member',
+                'permission_id' => $permissions['finance.team-loans.manage']->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
     }
 }

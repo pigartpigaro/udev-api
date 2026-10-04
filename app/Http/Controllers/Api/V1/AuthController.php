@@ -13,17 +13,17 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'string', 'email', 'max:255'],
+            'username' => ['required', 'string', 'max:32'],
             'password' => ['required', 'string', 'max:255'],
             'remember' => ['sometimes', 'boolean'],
         ]);
 
         if (! Auth::guard('web')->attempt(
-            ['email' => $credentials['email'], 'password' => $credentials['password']],
+            ['username' => strtolower(trim($credentials['username'])), 'password' => $credentials['password']],
             $credentials['remember'] ?? false,
         )) {
             throw ValidationException::withMessages([
-                'email' => ['Email atau kata sandi tidak sesuai.'],
+                'username' => ['Username atau kata sandi tidak sesuai.'],
             ]);
         }
 
@@ -50,12 +50,13 @@ class AuthController extends Controller
         ]);
     }
 
-    /** @return array{id: int, name: string, email: string, role: string} */
+    /** @return array{id: int, name: string, username: string, email: string, role: string} */
     private function userData(mixed $user): array
     {
         return [
             'id' => $user->id,
             'name' => $user->name,
+            'username' => $user->username,
             'email' => $user->email,
             'role' => $user->role,
         ];

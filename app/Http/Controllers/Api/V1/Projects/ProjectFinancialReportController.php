@@ -8,6 +8,7 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Tenancy\WorkspaceContext;
+use App\Services\Finance\WorkspaceCashPosition;
 
 class ProjectFinancialReportController extends Controller
 {
@@ -90,6 +91,16 @@ class ProjectFinancialReportController extends Controller
             ->where('invoices.workspace_id', $workspaceId)->where('invoices.status', 'issued')->when($projectId, fn (Builder $query) => $query->where('invoices.project_id', $projectId))
             ->selectRaw('COALESCE(SUM(CASE WHEN invoices.amount > COALESCE(receipts.received_total, 0) THEN invoices.amount - COALESCE(receipts.received_total, 0) ELSE 0 END), 0) AS total')->value('total'));
 
+        $teamLoansIssued = $projectId ? 0 : self::toCents(DB::table('team_loans')->where('workspace_id', $workspaceId)->where('status', '!=', 'voided')
+            ->when($dateFrom, fn (Builder $query) => $query->whereDate('issued_at', '>=', $dateFrom))
+            ->when($dateTo, fn (Builder $query) => $query->whereDate('issued_at', '<=', $dateTo))->sum('amount'));
+        $teamLoanRepayments = $projectId ? 0 : self::toCents(DB::table('team_loan_repayments')->where('workspace_id', $workspaceId)->where('status', 'received')
+            ->when($dateFrom, fn (Builder $query) => $query->whereDate('repaid_at', '>=', $dateFrom))
+            ->when($dateTo, fn (Builder $query) => $query->whereDate('repaid_at', '<=', $dateTo))->sum('amount'));
+        $allLoans = DB::table('team_loans')->where('workspace_id', $workspaceId)->where('status', '!=', 'voided')->sum('amount');
+        $allRepayments = DB::table('team_loan_repayments')->where('workspace_id', $workspaceId)->where('status', 'received')->sum('amount');
+        $teamLoansOutstanding = $projectId ? 0 : self::toCents($allLoans) - self::toCents($allRepayments);
+
         $projects->setCollection($projects->getCollection()->map(function (object $project): array {
             $received = self::toCents($project->received);
             $expenses = self::toCents($project->expenses);
@@ -109,8 +120,12 @@ class ProjectFinancialReportController extends Controller
                 'project_expenses' => self::fromCents($projectExpenseTotal),
                 'operational_expenses' => self::fromCents($operationalExpenseTotal),
                 'expenses' => self::fromCents($projectExpenseTotal + $operationalExpenseTotal),
-                'cash_flow' => self::fromCents($receivedTotal - $projectExpenseTotal - $operationalExpenseTotal),
+                'cash_flow' => self::fromCents($receivedTotal + $teamLoanRepayments - $projectExpenseTotal - $operationalExpenseTotal - $teamLoansIssued),
                 'outstanding' => self::fromCents($outstandingTotal),
+                'team_loans_issued' => self::fromCents($teamLoansIssued),
+                'team_loan_repayments' => self::fromCents($teamLoanRepayments),
+                'team_loans_outstanding' => self::fromCents(max(0, $teamLoansOutstanding)),
+                'cash_available' => $projectId ? '0.00' : WorkspaceCashPosition::amount(app(WorkspaceCashPosition::class)->currentCents()),
             ],
             'projects' => $projects,
             'filters' => ['date_from' => $dateFrom, 'date_to' => $dateTo, 'project_id' => $projectId],

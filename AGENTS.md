@@ -4,7 +4,7 @@ Ikuti juga aturan umum dari `D:\APP\Docker\AGENTS.md`.
 
 ## Backend Laravel
 
-- Cara menjalankan lokal harus tersedia di README dan dapat diikuti dari clone bersih. Alur Docker yang didukung: salin `.env.example` ke `.env`, ubah placeholder password lokal, buat `APP_KEY`, jalankan Compose dari folder `udev-api/`, lalu migrasi dan seed; verifikasi `/api/v1/health`. Untuk API+database saja, boleh jalankan service `app` dan `db`; untuk seluruh stack, jalankan juga `frontend` melalui Compose. Jangan gunakan `down -v` dalam alur berhenti biasa karena itu menghapus volume database.
+- Cara menjalankan lokal harus tersedia di README dan dapat diikuti dari clone bersih. Alur Docker yang didukung: salin `.env.example` ke `.env`, ubah placeholder password lokal, buat `APP_KEY`, jalankan Compose dari folder `udev-api/`, lalu jalankan `docker compose exec app php artisan udev:setup`; perintah ini memigrasikan database, mengisi data awal, dan meminta kredensial admin lokal bila belum tersedia. Verifikasi `/api/v1/health`. Untuk API+database saja, boleh jalankan service `app` dan `db`; untuk seluruh stack, jalankan juga `frontend` melalui Compose. Jangan gunakan `down -v` dalam alur berhenti biasa karena itu menghapus volume database.
 - Jika menyediakan alur tanpa Docker, dokumentasikan prasyarat PHP/Composer/MySQL yang benar-benar didukung dan perintahnya secara terpisah; jangan menyamakan konfigurasi container (misalnya `DB_HOST=db`) dengan koneksi host lokal.
 - `.env.example` hanya berisi nilai contoh aman, `.env` tidak boleh dilacak Git, dan perintah setup tidak boleh menampilkan atau menulis rahasia ke log/dokumentasi.
 
