@@ -1,0 +1,11 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return response()->json([
+        'name' => 'UDev API',
+        'status' => 'running',
+        'health' => url('/up'),
+    ]);
+});
