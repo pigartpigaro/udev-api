@@ -25,6 +25,7 @@ class UpdateProjectRequest extends FormRequest
             'target_end_date' => ['sometimes', 'nullable', 'date'],
             'status' => ['sometimes', 'required', Rule::in(Project::STATUSES)],
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'application_url' => ['sometimes', 'nullable', 'string', 'max:2048', 'url:http,https'],
         ];
     }
 

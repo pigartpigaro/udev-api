@@ -34,6 +34,7 @@ class ProjectTest extends TestCase
             'target_end_date' => '2026-12-31',
             'status' => 'active',
             'description' => 'Project untuk pengujian API.',
+            'application_url' => 'https://app.example.test',
         ]);
 
         $response->assertCreated()
@@ -41,6 +42,7 @@ class ProjectTest extends TestCase
             ->assertJsonPath('project.customer.id', $customer->id)
             ->assertJsonPath('project.project_type.id', $projectType->id)
             ->assertJsonPath('project.status', 'active');
+        $response->assertJsonPath('project.application_url', 'https://app.example.test');
 
         $this->assertMatchesRegularExpression('/^U-PR-\\d{4}-\\d{4,}$/', $response->json('project.code'));
         $this->assertDatabaseHas('projects', ['name' => 'Portal Internal Uji', 'customer_id' => $customer->id, 'project_type_id' => $projectType->id]);
@@ -81,5 +83,44 @@ class ProjectTest extends TestCase
             ->patchJson('/api/v1/projects/'.$project->id, ['target_end_date' => '2026-10-01'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('target_end_date');
+    }
+
+    public function test_project_application_url_can_be_updated_or_cleared(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::create(['name' => 'Pelanggan URL Uji']);
+        $projectType = ProjectType::create(['name' => 'Jenis URL Uji']);
+        $project = Project::create([
+            'name' => 'Project URL Uji',
+            'customer_id' => $customer->id,
+            'project_type_id' => $projectType->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->patchJson('/api/v1/projects/'.$project->id, ['application_url' => 'https://demo.example.test'])
+            ->assertOk()
+            ->assertJsonPath('project.application_url', 'https://demo.example.test');
+
+        $this->actingAs($admin)
+            ->patchJson('/api/v1/projects/'.$project->id, ['application_url' => null])
+            ->assertOk()
+            ->assertJsonPath('project.application_url', null);
+    }
+
+    public function test_project_application_url_only_accepts_http_or_https(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $customer = Customer::create(['name' => 'Pelanggan URL Invalid']);
+        $projectType = ProjectType::create(['name' => 'Jenis URL Invalid']);
+
+        $this->actingAs($admin)
+            ->postJson('/api/v1/projects', [
+                'name' => 'Project URL Invalid',
+                'customer_id' => $customer->id,
+                'project_type_id' => $projectType->id,
+                'application_url' => 'javascript:alert(1)',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('application_url');
     }
 }

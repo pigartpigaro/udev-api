@@ -22,6 +22,7 @@ class Project extends Model
         'target_end_date',
         'status',
         'description',
+        'application_url',
     ];
 
     protected function casts(): array

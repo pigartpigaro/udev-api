@@ -24,6 +24,7 @@ class StoreProjectRequest extends FormRequest
             'target_end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['sometimes', 'required', Rule::in(Project::STATUSES)],
             'description' => ['nullable', 'string', 'max:2000'],
+            'application_url' => ['nullable', 'string', 'max:2048', 'url:http,https'],
         ];
     }
 }

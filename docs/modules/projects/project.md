@@ -6,7 +6,7 @@ Modul ini tersedia pada menu `Project > Daftar Project` dan mengelola project ya
 
 ## Data dan status
 
-Project memiliki nama, pelanggan, jenis project, tanggal mulai, target selesai, status, dan deskripsi opsional. Status yang didukung: `draft`, `active`, `on_hold`, `completed`, `cancelled`. Hanya pelanggan yang belum dihapus dan jenis project aktif yang dapat dipilih pada pembuatan/perubahan project.
+Project memiliki nama, pelanggan, jenis project, tanggal mulai, target selesai, status, deskripsi opsional, dan tautan aplikasi opsional (`application_url`). Tautan menerima URL `http` atau `https`; frontend menampilkannya sebagai aksi untuk membuka aplikasi di tab baru. Status yang didukung: `draft`, `active`, `on_hold`, `completed`, `cancelled`. Hanya pelanggan yang belum dihapus dan jenis project aktif yang dapat dipilih pada pembuatan/perubahan project.
 
 ## Endpoint
 
@@ -15,9 +15,9 @@ Semua endpoint di bawah `/api/v1/projects` memerlukan Sanctum dan permission `pr
 | Method | Endpoint | Keterangan |
 | --- | --- | --- |
 | GET | `/projects` | Daftar terpaginasikan; mendukung `search`, `status`, dan `per_page`. |
-| POST | `/projects` | Membuat project; kode dibuat server. |
+| POST | `/projects` | Membuat project; kode dibuat server. `application_url` opsional. |
 | GET | `/projects/{project}` | Detail project dan relasi pelanggan/jenis. |
-| PUT/PATCH | `/projects/{project}` | Memperbarui data project tanpa mengubah kode. |
+| PUT/PATCH | `/projects/{project}` | Memperbarui data project tanpa mengubah kode; `application_url` dapat diisi atau dihapus dengan `null`. |
 
 Pencarian meliputi kode/nama project, nama/kode pelanggan, dan nama/kode jenis. API tidak menyediakan delete supaya catatan project dapat dirujuk invoice dan penerimaan yang akan dibuat pada tahap berikutnya.
 
@@ -28,3 +28,4 @@ Pencarian meliputi kode/nama project, nama/kode pelanggan, dan nama/kode jenis. 
 - `app/Http/Requests/Api/V1/Projects/`
 - `routes/api/v1/projects/project.php`
 - `database/migrations/2026_10_02_020000_create_projects_table.php`
+- `database/migrations/2026_10_05_010000_add_application_url_to_projects.php`
